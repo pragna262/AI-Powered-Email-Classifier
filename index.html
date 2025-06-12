@@ -1,0 +1,387 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>User Info with Overlay Panel & Dark Mode Slider</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css'>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: 'Montserrat', sans-serif;
+      background: radial-gradient(ellipse at center, rgba(255,254,234,1) 0%, rgba(255,254,234,1) 35%, #B7E8EB 100%);
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #000;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Dark Mode Background */
+    body.dark {
+      background: radial-gradient(ellipse at center, rgba(40,40,40,1) 0%, rgba(30,30,30,1) 35%, #121212 100%);
+      color: #ffffff;
+    }
+
+    /* Dark Mode Waves */
+    body.dark .ocean {
+      background: #444; /* Turns grey in dark mode */
+    }
+
+    /* Grey Waves in Dark Mode */
+    body.dark .wave {
+      filter: grayscale(100%);
+    }
+
+    .ocean {
+      height: 5%;
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      background: #015871;
+      z-index: 0;
+    }
+    .wave {
+      background: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg) repeat-x;
+      position: absolute;
+      top: -198px;
+      width: 6400px;
+      height: 198px;
+      animation: wave 5s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+      transform: translate3d(0, 0, 0);
+    }
+    .wave:nth-of-type(2) {
+      top: -175px;
+      animation: wave 7s cubic-bezier(0.36, 0.45, 0.63, 0.53) -0.125s infinite, swell 7s ease -1.25s infinite;
+      opacity: 1;
+    }
+
+    @keyframes wave {
+      0% { margin-left: 0; }
+      100% { margin-left: -1600px; }
+    }
+
+    @keyframes swell {
+      0%, 100% { transform: translate3d(0,-25px,0); }
+      50% { transform: translate3d(0,5px,0); }
+    }
+
+    /* Container base */
+    .container {
+      background: #fff;
+      border-radius: 90px;
+      box-shadow: 30px 14px 28px rgba(0, 0, 5, 0.2), 0 10px 10px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+      opacity: 0.85;
+      width: 768px;
+      max-width: 100%;
+      min-height: 480px;
+      transition: 333ms ease-in-out;
+      display: flex;
+    }
+
+    /* Dark Mode Container */
+    body.dark .container {
+      background: #333;
+      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+    }
+
+    /* Left panel (User Info) */
+    .user-info-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      padding: 60px 40px;
+      box-sizing: border-box;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      transition: all 0.6s ease-in-out;
+      z-index: 2;
+    }
+
+    body.dark .user-info-container {
+      background: #444;
+      color: #fff;
+    }
+
+    .user-info-container h1 {
+      margin-bottom: 20px;
+    }
+
+    .info-box {
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.5;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    body.dark .info-box {
+      color: #ddd;
+    }
+
+    .info-box p {
+      margin: 8px 0;
+    }
+    .info-box strong {
+      color: #008ecf;
+    }
+    body.dark .info-box strong {
+      color: #66bbff;
+    }
+
+    .user-info-container button {
+      border-radius: 50px;
+      box-shadow: 0 1px 1px;
+      border: 1px solid #008ecf;
+      background: #008ecf;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      padding: 14px 60px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 80ms ease-in;
+    }
+    .user-info-container button:active {
+      transform: scale(0.95);
+    }
+    .user-info-container button:focus {
+      outline: none;
+    }
+
+    /* Dark Mode Button */
+    body.dark button {
+      background: #777;
+      color: black;
+    }
+
+    /* Right overlay panel */
+    .overlay-container {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+      transition: transform 0.6s ease-in-out;
+      z-index: 100;
+    }
+    .overlay {
+      background: linear-gradient(to right, #008ecf, #008ecf);
+      color: #fff;
+      position: relative;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 0 40px;
+      box-sizing: border-box;
+      text-align: center;
+      transform: translateX(0);
+      transition: transform 0.6s ease-in-out;
+      border-radius: 0 90px 90px 0;
+    }
+
+    body.dark .overlay {
+      background: linear-gradient(to right, #004466, #004466);
+      color: #ddd;
+    }
+
+    .overlay h1 {
+      font-weight: 700;
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+    }
+
+    .overlay p {
+      font-size: 18px;
+      font-weight: 400;
+      margin-bottom: 40px;
+      line-height: 1.4;
+      max-width: 300px;
+    }
+
+    .overlay button {
+      border-radius: 50px;
+      box-shadow: 0 1px 1px;
+      border: 1px solid #fff;
+      background: transparent;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      padding: 14px 60px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .overlay button:hover {
+      background-color: #fff;
+      color: #008ecf;
+    }
+    .overlay button:focus {
+      outline: none;
+    }
+
+    /* Right panel slide out when active */
+    .container.right-panel-active .user-info-container {
+      transform: translateX(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .container.right-panel-active .overlay-container {
+      transform: translateX(-100%);
+    }
+    .container.right-panel-active .overlay {
+      transform: translateX(100%);
+    }
+
+    /* Dark Mode Toggle Slider Container */
+    .toggle-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    /* The switch - the box around the slider */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+    }
+
+    /* Hide default HTML checkbox */
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    /* The slider */
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #008ecf;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+    /* Dark Mode switch colors */
+    body.dark .slider {
+      background-color: #555;
+    }
+
+    body.dark input:checked + .slider {
+      background-color: #66bbff;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="toggle-container" title="Toggle Dark Mode">
+    <label class="switch">
+      <input type="checkbox" id="darkModeToggle" />
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="ocean">
+    <div class="wave"></div>
+    <div class="wave"></div>
+  </div>
+
+  <section>
+    <div class="container" id="container">
+      <div class="form-container user-info-container">
+        <h1>Your Email Info</h1>
+        <div class="info-box">
+          <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+          <p><strong>BVRIT IMP Emails:</strong> <span id="bvritImpCount">Loading...</span></p>
+        </div>
+      </div>
+
+      <div class="overlay-container">
+        <div class="overlay">
+          <h1>Access your Dashboard</h1>
+          <button id="viewDashboardBtn">View Dashboard</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const viewDashboardBtn = document.getElementById('viewDashboardBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+
+    viewDashboardBtn.addEventListener('click', () => {
+      window.location.href = 'dashboard1.html';
+    });
+
+    // On toggle change, toggle dark mode class on body
+    darkModeToggle.addEventListener('change', () => {
+      document.body.classList.toggle('dark', darkModeToggle.checked);
+      // Optionally store user preference:
+      if (darkModeToggle.checked) {
+        localStorage.setItem('darkMode', 'true');
+      } else {
+        localStorage.setItem('darkMode', 'false');
+      }
+    });
+
+    // Load stored preference on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const darkModePref = localStorage.getItem('darkMode');
+      if (darkModePref === 'true') {
+        document.body.classList.add('dark');
+        darkModeToggle.checked = true;
+      }
+      // Simulate loading user email info
+      setTimeout(() => {
+        document.getElementById('userEmail').textContent = '22wh1a0581@bvrithyderabad.edu.in';
+        document.getElementById('bvritImpCount').textContent = '1';
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

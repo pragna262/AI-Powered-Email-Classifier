@@ -1,0 +1,239 @@
+<!DOCTYPE html>  
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Emails - Category</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"/>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: radial-gradient(ellipse at center, rgba(255,254,234,1) 0%, rgba(255,254,234,1) 35%, #B7E8EB 100%);
+      color: #333;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+    body.dark {
+      background: radial-gradient(ellipse at center, rgba(40,40,40,1) 0%, rgba(30,30,30,1) 35%, #121212 100%);
+      color: #ffffff;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5em;
+      margin-bottom: 30px;
+      color: #2c3e50;
+      transition: color 0.5s ease;
+    }
+    body.dark h1 {
+      color: #ffffff;
+    }
+    .dark-toggle-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      background-color: #ccc;
+      border-radius: 34px;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transition: .4s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+    }
+    input:checked + .slider {
+      background-color: #444;
+    }
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+    .email-category {
+      margin-bottom: 40px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: background 0.5s ease, box-shadow 0.5s ease;
+    }
+    body.dark .email-category {
+      background-color: #333;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+    }
+    h2 {
+      font-size: 1.4em;
+      margin-bottom: 15px;
+      color: #34495e;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 8px;
+      transition: color 0.5s ease, border 0.5s ease;
+    }
+    body.dark h2 {
+      color: #ffffff;
+      border-color: #444;
+    }
+    .email {
+      background: #E3D9CF;
+      border-left: 6px solid #D4A373;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      transition: background 0.5s ease, border 0.5s ease, color 0.5s ease;
+    }
+    body.dark .email {
+      background-color: #444;
+      color: #ffffff;
+      border-left-color: #A67C52;
+    }
+    #top-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    #searchInput {
+      padding: 10px;
+      width: 300px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      transition: background 0.5s ease, color 0.5s ease, border 0.5s ease;
+    }
+    body.dark #searchInput {
+      background-color: #222;
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+  </style>
+</head>
+
+<body>
+  <h1 id="page-title">Category Emails</h1>
+
+  <!-- Search Bar -->
+  <div id="top-controls">
+    <input type="text" id="searchInput" placeholder="Search emails by subject or sender" onkeyup="searchEmails()" />
+  </div>
+
+  <!-- Email List -->
+  <div id="emailContainer"></div>
+
+  <!-- Dark Mode Toggle -->
+  <div class="dark-toggle-container">
+    <label class="switch">
+      <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark') ? "enabled" : "disabled");
+    }
+
+    window.onload = function () {
+      if (localStorage.getItem('darkMode') === "enabled") {
+        document.body.classList.add('dark');
+        document.getElementById('darkModeToggle').checked = true;
+      }
+      loadEmails();
+    };
+
+    function searchEmails() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const emails = document.querySelectorAll('.email');
+      emails.forEach(email => {
+        const subject = email.querySelector('.subject').textContent.toLowerCase();
+        const from = email.querySelector('.from').textContent.toLowerCase();
+        email.style.display = (subject.includes(query) || from.includes(query)) ? 'block' : 'none';
+      });
+    }
+
+    async function loadEmails() {
+      const params = new URLSearchParams(window.location.search);
+      const category = params.get('category');
+      document.getElementById('page-title').innerText = `${category} Emails`;
+
+      try {
+        const res = await fetch('/emails');
+        const data = await res.json();
+
+        const emails = data[category] || [];
+        const emailContainer = document.getElementById('emailContainer');
+
+        // <-- Replace 'NewCategory' below with your new card's category name exactly:
+        if (category === 'Infosys') {
+          emailContainer.innerHTML = '<p>No emails in this category.</p>';
+          return;
+        }
+
+        if (emails.length === 0) {
+          emailContainer.innerHTML = '<p>No emails in this category.</p>';
+          return;
+        }
+
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'email-category';
+
+        const header = document.createElement('h2');
+        header.textContent = category;
+        categoryDiv.appendChild(header);
+
+        emails.forEach(email => {
+          const emailDiv = document.createElement('div');
+          emailDiv.className = 'email';
+
+          const subjectDiv = document.createElement('div');
+          subjectDiv.className = 'subject';
+          subjectDiv.textContent = `Subject: ${email.subject}`;
+
+          const fromDiv = document.createElement('div');
+          fromDiv.className = 'from';
+          fromDiv.textContent = `From: ${email.from}`;
+
+          emailDiv.appendChild(subjectDiv);
+          emailDiv.appendChild(fromDiv);
+          categoryDiv.appendChild(emailDiv);
+        });
+
+        emailContainer.appendChild(categoryDiv);
+
+      } catch (err) {
+        document.getElementById('emailContainer').innerHTML = '<p>Error loading emails.</p>';
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>

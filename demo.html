@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Email Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(-45deg, #d2f5f2, #cfefff, #d4fcd6);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 20px;
+      flex-direction: column;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 40px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .card {
+      position: relative;
+      background: white;
+      color: #333;
+      padding: 50px 30px;
+      border-radius: 25px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      animation: fadeIn 1s ease forwards;
+      user-select: none;
+    }
+
+    /* Smaller card variant for Create Label */
+    .card.create-label {
+      padding: 25px 15px;
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: #4caf50;
+      width: 140px;
+      height: 120px;
+      margin: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 20px;
+    }
+
+    .card.create-label:hover {
+      background: linear-gradient(135deg, #a7ffeb, #b2ebf2, #ccff90);
+      transform: scale(1.1);
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #a7ffeb, #b2ebf2, #ccff90);
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(30px); }
+    }
+
+    /* Modal styles */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    .modal h2 {
+      margin-bottom: 20px;
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: #333;
+      text-align: center;
+    }
+
+    .modal label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .modal input[type="text"],
+    .modal input[type="email"] {
+      width: 100%;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1.5px solid #aaa;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .modal input[type="text"]:focus,
+    .modal input[type="email"]:focus {
+      border-color: #4caf50;
+      outline: none;
+    }
+
+    .modal .form-text {
+      font-size: 0.85rem;
+      color: #d32f2f;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .modal .buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .modal button {
+      flex: 1;
+      padding: 12px 0;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 25px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .modal button.cancel-btn {
+      background: #ddd;
+      color: #444;
+    }
+
+    .modal button.cancel-btn:hover {
+      background: #bbb;
+    }
+
+    .modal button.create-btn {
+      background: #4caf50;
+      color: white;
+    }
+
+    .modal button.create-btn:hover {
+      background: #388e3c;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card-container" id="labelsContainer">
+    <!-- Cards will be inserted here -->
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h2 id="modalTitle">Create New Label</h2>
+      <form id="createLabelForm">
+        <label for="labelName">Label Name</label>
+        <input
+          type="text"
+          id="labelName"
+          placeholder="E.g. LinkedIn"
+          required
+        />
+        <label for="senderEmail">Sender Email</label>
+        <input
+          type="email"
+          id="senderEmail"
+          placeholder="E.g. notifications@linkedin.com"
+          required
+        />
+        <div class="form-text">
+          Ensure the sender email and label are the same for correct classification.
+        </div>
+        <div class="buttons">
+          <button type="button" class="cancel-btn" id="cancelBtn">Cancel</button>
+          <button type="submit" class="create-btn">Create Label</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const createLabelForm = document.getElementById('createLabelForm');
+    const labelsContainer = document.getElementById('labelsContainer');
+
+    function showModal() {
+      modalBackdrop.classList.add('active');
+      document.getElementById('labelName').focus();
+    }
+
+    function hideModal() {
+      modalBackdrop.classList.remove('active');
+      createLabelForm.reset();
+    }
+
+    // Create Label card as first card - smaller size
+    function createLabelCard() {
+      const card = document.createElement('div');
+      card.classList.add('card', 'create-label');
+      card.style.animationDelay = '0s';
+      card.textContent = '+ Create Label';
+      card.addEventListener('click', () => {
+        showModal();
+      });
+      return card;
+    }
+
+    // Fetch labels from backend and display cards
+    async function loadLabels() {
+      labelsContainer.innerHTML = '';
+      labelsContainer.appendChild(createLabelCard());
+
+      try {
+        const res = await fetch('/labels');
+        if (!res.ok) throw new Error('Failed to fetch labels');
+        const labels = await res.json();
+        if (!labels.length) {
+          return;
+        }
+        labels.forEach(({ labelName }, i) => {
+          const card = document.createElement('div');
+          card.classList.add('card');
+          card.style.animationDelay = `${(i + 1) * 0.15}s`;
+          card.textContent = labelName;
+          card.addEventListener('click', () => {
+            window.location.href = `category.html?label=${encodeURIComponent(labelName)}`;
+          });
+          labelsContainer.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    cancelBtn.addEventListener('click', () => {
+      hideModal();
+    });
+
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) {
+        hideModal();
+      }
+    });
+
+    createLabelForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const labelName = document.getElementById('labelName').value.trim();
+      const senderEmail = document.getElementById('senderEmail').value.trim();
+
+      if (!labelName || !senderEmail) return;
+
+      try {
+        const res = await fetch('/labels', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ labelName, senderEmail }),
+        });
+        if (!res.ok) throw new Error('Failed to create label');
+
+        hideModal();
+        await loadLabels();
+        alert(`Label "${labelName}" created successfully!`);
+      } catch (error) {
+        alert('Error creating label. Please try again.');
+        console.error(error);
+      }
+    });
+
+    loadLabels();
+  </script>
+</body>
+</html>
